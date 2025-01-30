@@ -1,5 +1,3 @@
-
-Copy
 # VendorScraperAPI 🛠️
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](https://python.org)
@@ -30,59 +28,66 @@ VendorScraperAPI is a powerful web search API that helps users find top-rated ve
 ```bash
 git clone https://github.com/yourusername/VendorScraperAPI.git
 cd cliffco-homebot
-Create and activate virtual environment:
+```
 
-bash
-Copy
+2. **Create and activate virtual environment**:
+```bash
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-Install dependencies:
+```
 
-bash
-Copy
+3. **Install dependencies**:
+```bash
 pip install -r requirements.txt
-Set environment variables:
+```
 
-bash
-Copy
+4. **Set environment variables**:
+```bash
 export BROWSERBASE_API_KEY=your_browserbase_api_key
 export BROWSERBASE_PROJECT_ID=your_browserbase_project_id
 export OPENAI_API_KEY=your_openai_api_key
-Usage 🚀
+```
+
+## Usage 🚀
+
 Start the FastAPI server:
-
-bash
-Copy
+```bash
 uvicorn main:app --reload
-Access the API documentation at: http://127.0.0.1:8000/docs
+```
 
-Project Structure 📁
-Copy
+Access the API documentation at: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+## Project Structure 📁
+
+```
 ├── browserbase.py    # Browserbase session management and scraping
 ├── googletool.py     # Google Maps URL generation
 ├── main.py           # FastAPI application and endpoints
 ├── requirements.txt  # Project dependencies
 └── README.md         # Project documentation
-API Endpoints 🔌
-GET /search
+```
+
+## API Endpoints 🔌
+
+### GET /search
 Search for vendors based on service type and filters
 
-Parameters:
+**Parameters**:
 
-Parameter	Type	Required	Description
-service_type	str	Yes	Type of service (e.g., Plumbing)
-filters	str	No	Additional search filters
-Example Request:
+| Parameter    | Type | Required | Description                     |
+|--------------|------|----------|---------------------------------|
+| service_type | str  | Yes      | Type of service (e.g., Plumbing)|
+| filters      | str  | No       | Additional search filters       |
 
-bash
-Copy
+**Example Request**:
+```bash
 curl -X 'GET' \
   'http://127.0.0.1:8000/search?service_type=Plumbing&filters=24-hour' \
   -H 'accept: application/json'
-Example Response:
+```
 
-json
-Copy
+**Example Response**:
+```json
 {
   "service_type": "Plumbing",
   "filters": "24-hour",
@@ -95,28 +100,16 @@ Copy
     }
   ]
 }
-Contributing 🤝
+```
+
+## Contributing 🤝
 Contributions are welcome! Please follow these steps:
 
-Fork the repository
+1. Fork the repository  
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)  
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)  
+4. Push to the branch (`git push origin feature/AmazingFeature`)  
+5. Open a Pull Request  
 
-Create a feature branch (git checkout -b feature/AmazingFeature)
-
-Commit your changes (git commit -m 'Add some AmazingFeature')
-
-Push to the branch (git push origin feature/AmazingFeature)
-
-Open a Pull Request
-
-License 📄
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-Copy
-
-To use this:
-1. Copy ALL text between the triple backticks
-2. Paste into a new file named `README.md`
-3. Replace placeholder values (yourusername, API keys)
-4. The markdown will render properly on GitHub
-
-The code blocks and formatting will work correctly once it's in a .md file on GitHub.
+## License 📄
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
