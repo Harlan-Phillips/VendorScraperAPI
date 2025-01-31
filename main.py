@@ -2,13 +2,12 @@ import sys
 import datetime
 from crewai import Crew, Process, Task, Agent
 from browserbase import browserbase, phone_number_scraper
-from yelp import yelp
 from googletool import google
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 import logging
 import asyncio
 import multiprocessing
-
+from together import Together
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,51 +23,54 @@ google_agent = Agent(
 )
 
 expected_output = """
-    {
-      "vendorName": "Vendor A",
-      "rating": 4.9,
-      "reviews": 56,
-      "description": "Summary of last 30 reviews highlighting... (50 words max)",
-      "247availability": true,
-      "contact": "(123) 456-7890",
-      "website": "https://vendor-a.com"
-    },
-    {
-      "vendorName": "Vendor B",
-      "rating": 4.5,
-      "reviews": 42,
-      "description": "Consensus from recent reviews indicates... (50 words max)",
-      "247availability": false,
-      "contact": "(234) 567-8901",
-      "website": "https://vendor-b.com"
-    }
+    ```json
+        {
+        "vendorName": "Vendor A",
+        "rating": 4.9,
+        "reviews": 56,
+        "description": "Summary of last 30 reviews highlighting... (50 words max)",
+        "247availability": true,
+        "contact": "(123) 456-7890",
+        "website": "https://vendor-a.com"
+        },
+        {
+        "vendorName": "Vendor B",
+        "rating": 4.5,
+        "reviews": 42,
+        "description": "Consensus from recent reviews indicates... (50 words max)",
+        "247availability": false,
+        "contact": "(234) 567-8901",
+        "website": "https://vendor-b.com"
+        }
+        {
+        "vendorName": "Vendor C",
+        "rating": 4.5,
+        "reviews": 42,
+        "description": "Consensus from recent reviews indicates... (50 words max)",
+        "247availability": false,
+        "contact": "(234) 567-8901",
+        "website": "https://vendor-c.com"
+        }
+    ```
     """
 
 search_task = Task(
     description=(
         "Execute sequential steps:\n"
         "1. Generate Google Search URL for '{service_type} vendors near {zip_code}'\n"
-        "2. Use Browserbase to load results ONCE\n"
-        "3. For the first 3 vendors returned:\n"
-        "   - Apply filters: {filters}\n"
-        "   - If a vendor does not meet the filters, skip it.\n"
-        "4. For all subsequent vendors (beyond the first 3), ignore filters and include them automatically. (Up to 10)\n"
-        "5. For each included vendor:\n"
-        "   a) Visit the business page (single load)\n"
+        "2. Use Browserbase to load results\n"
+        "3. For up to 10 vendors, apply these filters: {filters}:\n"
+        "   a) Click on each business \n"
         "   b) Extract:\n"
         "      - Vendor Name\n"
         "      - Rating\n"
         "      - Number of Reviews\n"
-        "      - Description (50-word summary of last 30 reviews, include positive & negative feedback)\n"
+        "      - Description (50-word summary of last 30 reviews, include positive & negative feedback and list the percentage of each)\n"
         "      - Contact Phone\n"
         "      - 24/7 Availability (boolean)\n"
         "      - Website URL\n"
-        "6. Return JSON array with valid entries (any number)\n"
-        "7. Empty array if no matches\n\n"
-        "- No duplicate tool calls\n"
-        "- 30s/page timeout\n"
-        "- Validate filters before inclusion\n"
-        "- Pure JSON output only"
+        "4. Return JSON with valid entries (up to 10)\n"
+        "DO NOT INCLUDE BRACKETS in your response"
     ),
     expected_output=expected_output,
     agent=google_agent,
@@ -104,11 +106,40 @@ def search(service_type: str, filters: str = None):
         "zip_code": "11514",
     }
 
-    with multiprocessing.Pool(processes=4) as pool:
-        result = pool.map(run_task, [inputs])
-
-    logging.info("Search completed")
+    result = crew.kickoff(inputs=inputs)
     return result
+
+# endpoint for deepseek r1
+@app.post("/deepseek")
+async def deepseek(request: Request):
+    try:
+        # Parse JSON body
+        data = await request.json()
+        query = data.get("query")
+        instructions = data.get("instructions")
+
+        # Use the query and instructions as needed.
+        client = Together()
+        messages = [{"role": "user", "content": query}]
+        
+        if instructions:
+            messages.insert(0, {
+                "role": "system",
+                "content": instructions
+            })
+            
+        response = client.chat.completions.create(
+            model="deepseek-ai/DeepSeek-R1",
+            messages=messages
+        )
+        
+        print(response.choices[0].message.content)
+        return response.choices[0].message.content
+        
+        
+    except Exception as e:
+        logging.error(f"Error calling DeepSeek: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

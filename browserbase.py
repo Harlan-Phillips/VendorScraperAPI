@@ -21,14 +21,24 @@ def create_session_with_proxy() -> str:
     }
     json = {
         "projectId": PROJECT_ID,
-        "browserSettings": {
-            "proxies": True,  # Use default proxy configuration
-        },
+        "proxies": [
+            {
+                "type": "external",
+                "server": "http://208.195.163.93:65095",
+                "username": "", 
+                "password": "",  
+            }
+        ]
     }
 
-    response = requests.post(sessions_url, json=json, headers=headers)
-    response.raise_for_status()
-    return response.json()["id"]
+    try:
+        response = requests.post(sessions_url, json=json, headers=headers)
+        response.raise_for_status()
+        return response.json()["id"]
+    except requests.exceptions.RequestException as e:
+        print(f"Error creating session: {e}")
+        print(f"Response content: {response.content}")
+        raise
 
 @tool("Browserbase tool")
 def browserbase(url: str):
@@ -45,7 +55,7 @@ def browserbase(url: str):
         )
         context = browser.contexts[0]
         page = context.pages[0]
-        page.goto(url)
+        page.goto(url, timeout=120000)
 
         # if phonenumber:
         #     # Wait for the parent div containing the phone number to appear
@@ -59,7 +69,7 @@ def browserbase(url: str):
         #page.wait_for_selector("ul.list__09f24__ynIEd", timeout=10000)
         #page.wait_for_selector('div[class="DyM7H"]')
         #page.wait_for_selector('div[class="Nv2PK tH5CWc THOPZb"]') 
-        sleep(2)
+        sleep(15)
         content = html2text(page.content())
         browser.close()
         return content
