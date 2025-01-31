@@ -27,7 +27,6 @@ VendorScraperAPI is a powerful web search API that helps users find top-rated ve
 1. **Clone the repository**:
 ```bash
 git clone https://github.com/yourusername/VendorScraperAPI.git
-cd cliffco-homebot
 ```
 
 2. **Create and activate virtual environment**:
